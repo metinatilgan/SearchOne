@@ -1,0 +1,18 @@
+{
+  "name": "searchone",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public web intelligence MVP for businesses and consent-aware person profile discovery.",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "NODE_ENV=production node src/server.js",
+    "test": "node --test",
+    "preflight": "node scripts/preflight.js",
+    "preflight:release": "node scripts/preflight.js --strict",
+    "search:verify": "node scripts/verify_live_search.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

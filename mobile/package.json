@@ -1,0 +1,23 @@
+{
+  "name": "searchone-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "check": "npx expo install --check",
+    "build:ios": "npx eas build --platform ios",
+    "submit:ios": "npx eas submit --platform ios"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~55.0.23",
+    "expo-constants": "~55.0.16",
+    "expo-status-bar": "~55.0.6",
+    "react": "19.2.0",
+    "react-native": "0.83.6"
+  }
+}

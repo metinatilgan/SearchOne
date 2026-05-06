@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SearchOne</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace" aria-labelledby="app-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Public web intelligence</p>
+            <h1 id="app-title">SearchOne</h1>
+          </div>
+          <div class="status" id="provider-status">Bağlantı kontrol ediliyor</div>
+        </header>
+
+        <form class="search-panel" id="search-form">
+          <div class="query-row">
+            <label class="field">
+              <span>Aranacak ad, marka veya işletme</span>
+              <input
+                id="query"
+                name="query"
+                type="search"
+                minlength="2"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Örn. Acme Yazılım veya Ayşe Yılmaz"
+                required
+              />
+            </label>
+            <button class="primary-button" type="submit">Ara</button>
+          </div>
+
+          <div class="filters">
+            <fieldset class="segmented" aria-label="Arama türü">
+              <label>
+                <input type="radio" name="targetType" value="business" checked />
+                <span>İşyeri / kurum</span>
+              </label>
+              <label>
+                <input type="radio" name="targetType" value="person" />
+                <span>Şahıs</span>
+              </label>
+            </fieldset>
+
+            <label class="field compact">
+              <span>Konum</span>
+              <input id="location" name="location" type="text" maxlength="80" placeholder="İstanbul, Ankara..." />
+            </label>
+          </div>
+        </form>
+
+        <section class="notice" id="privacy-notice">
+          Şahıs aramalarında özel telefon, kişisel e-posta ve ev adresi çıkarılmaz. Kaynaklı, kamuya açık profesyonel profil ve işletme bilgileri gösterilir.
+        </section>
+
+        <section class="results" id="results" aria-live="polite">
+          <div class="empty-state">
+            <div class="empty-mark">SO</div>
+            <h2>Bir isim veya işletme girin.</h2>
+            <p>Sonuçlar kaynak bağlantıları, sosyal profil adayları, işletme iletişim kayıtları ve güven skoru olarak ayrıştırılır.</p>
+          </div>
+        </section>
+
+        <footer class="legal-footer" aria-label="Yasal bağlantılar">
+          <a href="privacy.html">Gizlilik Politikası</a>
+          <a href="terms.html">Kullanım Şartları</a>
+          <a href="eula.html">EULA</a>
+          <a href="subscription-terms.html">Abonelik Şartları</a>
+          <a href="privacy-choices.html">Gizlilik Tercihleri</a>
+        </footer>
+      </section>
+    </main>
+
+    <template id="source-template">
+      <article class="source-card">
+        <div>
+          <a class="source-title" target="_blank" rel="noreferrer"></a>
+          <p class="source-snippet"></p>
+        </div>
+        <span class="source-host"></span>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
