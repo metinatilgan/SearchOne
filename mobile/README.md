@@ -90,6 +90,12 @@ npm run preflight:release
 
 `preflight:release`, `EXPO_PUBLIC_API_BASE_URL` gerçek bir HTTPS backend olmadığı sürece başarısız olur. GitHub Pages yalnızca yasal/static sayfalar için uygundur; `/api/search` endpoint'i için Node backend'i Render, Fly.io, Railway, Vercel Functions veya benzeri bir servis üzerinde yayınlanmalıdır.
 
+Heroku kullanılıyorsa API adresi şu formatta olur:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=https://<heroku-app-adiniz>.herokuapp.com
+```
+
 ## Ürün sınırları
 
 Şahıs aramalarında özel telefon, kişisel e-posta ve ev adresi çıkarılmamalı. Bu sınır hem backend'de hem de App Store açıklamasında açıkça korunmalı.

@@ -8,6 +8,8 @@ const results = [];
 checkJson("mobile/app.json");
 checkJson("mobile/package.json");
 checkJson("mobile/eas.json");
+checkJson("app.json");
+checkFile("Procfile");
 checkFile("mobile/assets/icon.png");
 checkFile("mobile/assets/adaptive-icon.png");
 checkFile("mobile/assets/splash-icon.png");

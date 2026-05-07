@@ -1,0 +1,70 @@
+{
+  "name": "SearchOne",
+  "description": "Public web intelligence API for SearchOne mobile.",
+  "repository": "https://github.com/metinatilgan/SearchOne",
+  "keywords": [
+    "node",
+    "search",
+    "tavily",
+    "mobile-backend"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "SEARCH_PROVIDER": {
+      "description": "Live search provider used by the backend.",
+      "value": "tavily"
+    },
+    "REQUIRE_LIVE_SEARCH": {
+      "description": "Set true in production so the API fails instead of silently using demo results.",
+      "value": "true"
+    },
+    "TAVILY_API_KEY": {
+      "description": "Tavily API key used for live web search.",
+      "required": true
+    },
+    "TAVILY_SEARCH_DEPTH": {
+      "description": "Tavily search depth.",
+      "value": "basic"
+    },
+    "TAVILY_TOPIC": {
+      "description": "Tavily topic.",
+      "value": "general"
+    },
+    "TAVILY_COUNTRY": {
+      "description": "Country hint for Tavily search.",
+      "value": "turkey"
+    },
+    "RATE_LIMIT_WINDOW_MS": {
+      "description": "Rate limit window in milliseconds.",
+      "value": "60000"
+    },
+    "RATE_LIMIT_MAX": {
+      "description": "Maximum search requests per client per window.",
+      "value": "30"
+    },
+    "SEARCH_TIMEOUT_MS": {
+      "description": "Outbound provider timeout in milliseconds.",
+      "value": "8000"
+    },
+    "SEARCH_COUNTRY": {
+      "description": "Search country hint.",
+      "value": "tr"
+    },
+    "SEARCH_LANG": {
+      "description": "Search language hint.",
+      "value": "tr"
+    },
+    "SEARCH_UI_LANG": {
+      "description": "Search UI language hint.",
+      "value": "tr-TR"
+    },
+    "SEARCH_SAFESEARCH": {
+      "description": "Safe search mode.",
+      "value": "moderate"
+    }
+  }
+}

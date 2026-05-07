@@ -47,6 +47,48 @@ Desteklenen sağlayıcılar:
 - Bing Web Search API
 - SerpAPI
 
+## Heroku backend yayını
+
+Heroku, bu repo için `Procfile` üzerinden `npm start` komutunu çalıştırır ve `PORT` değerini otomatik verir. Dashboard üzerinden deploy için:
+
+1. Heroku'da yeni app oluşturun.
+2. **Deploy** sekmesinde GitHub repo olarak `metinatilgan/SearchOne` bağlayın.
+3. **Settings > Config Vars** bölümüne production değerlerini ekleyin:
+
+```bash
+SEARCH_PROVIDER=tavily
+REQUIRE_LIVE_SEARCH=true
+TAVILY_API_KEY=...
+TAVILY_SEARCH_DEPTH=basic
+TAVILY_TOPIC=general
+TAVILY_COUNTRY=turkey
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=30
+SEARCH_TIMEOUT_MS=8000
+SEARCH_COUNTRY=tr
+SEARCH_LANG=tr
+SEARCH_UI_LANG=tr-TR
+SEARCH_SAFESEARCH=moderate
+```
+
+4. **Manual Deploy** ile `main` branch'ini deploy edin.
+5. Deploy sonrası sağlık kontrolünü açın:
+
+```bash
+https://<heroku-app-adiniz>.herokuapp.com/api/health
+```
+
+Yanıt `providerConfigured: true` ve `mode: "live"` dönmelidir. Mobil TestFlight build sırasında `EXPO_PUBLIC_API_BASE_URL` bu Heroku HTTPS adresi olmalıdır.
+
+Heroku CLI kullanacaksanız aynı işlem:
+
+```bash
+heroku login
+heroku create searchone-api
+heroku config:set SEARCH_PROVIDER=tavily REQUIRE_LIVE_SEARCH=true TAVILY_API_KEY=...
+git push heroku main
+```
+
 ## API
 
 `POST /api/search`
