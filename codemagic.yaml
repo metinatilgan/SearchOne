@@ -3,13 +3,11 @@ workflows:
     name: iOS TestFlight
     max_build_duration: 120
     instance_type: mac_mini_m2
-    integrations:
-      app_store_connect: codemagic
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.metinatilgan.searchone
+      groups:
+        - app_store_credentials_team
       vars:
+        BUNDLE_ID: "com.metinatilgan.searchone"
         XCODE_WORKSPACE: "SearchOne.xcworkspace"
         XCODE_SCHEME: "SearchOne"
       xcode: latest
@@ -32,6 +30,25 @@ workflows:
         script: |
           cd mobile/ios
           pod install
+      - name: Validate signing environment
+        script: |
+          test -n "${APP_STORE_CONNECT_PRIVATE_KEY:-}"
+          test -n "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}"
+          test -n "${APP_STORE_CONNECT_ISSUER_ID:-}"
+          test -n "${CERTIFICATE_PRIVATE_KEY:-}"
+      - name: Initialize keychain
+        script: keychain initialize
+      - name: Fetch signing files from Apple Developer Portal
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key @env:APP_STORE_CONNECT_PRIVATE_KEY \
+            --certificate-key @env:CERTIFICATE_PRIVATE_KEY
+      - name: Add signing certificates to keychain
+        script: keychain add-certificates
       - name: Apply iOS signing profiles
         script: |
           cd mobile
@@ -48,6 +65,8 @@ workflows:
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       app_store_connect:
-        auth: integration
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
         submit_to_app_store: false
