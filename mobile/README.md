@@ -96,6 +96,21 @@ Heroku kullanılıyorsa API adresi şu formatta olur:
 EXPO_PUBLIC_API_BASE_URL=https://<heroku-app-adiniz>.herokuapp.com
 ```
 
+## Codemagic TestFlight build
+
+Repo kökünde `codemagic.yaml` bulunur. Codemagic'te uygulamayı GitHub reposuna bağladıktan sonra `searchone_production` environment variable group'unu oluşturun ve şu değerleri ekleyin:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=https://searchone-43f3bf34623e.herokuapp.com
+EXPO_PUBLIC_ADS_ENABLED=true
+EXPO_PUBLIC_ADS_PERSONALIZED=false
+EXPO_PUBLIC_ADS_NON_PERSONALIZED_ONLY=true
+EXPO_PUBLIC_ADMOB_IOS_APP_ID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+EXPO_PUBLIC_ADMOB_IOS_BANNER_AD_UNIT_ID=ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyy
+```
+
+Codemagic'te ayrıca App Store Connect integration adı `codemagic` olmalı, iOS code signing için `app_store` distribution profile/certificate `com.metinatilgan.searchone` bundle ID ile eşleşmelidir. Workflow adı: `iOS TestFlight`.
+
 ## Ürün sınırları
 
 Şahıs aramalarında özel telefon, kişisel e-posta ve ev adresi çıkarılmamalı. Bu sınır hem backend'de hem de App Store açıklamasında açıkça korunmalı.

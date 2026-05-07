@@ -1,0 +1,55 @@
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      groups:
+        - searchone_production
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.metinatilgan.searchone
+      vars:
+        XCODE_WORKSPACE: "SearchOne.xcworkspace"
+        XCODE_SCHEME: "SearchOne"
+      xcode: latest
+      cocoapods: default
+      node: latest
+    scripts:
+      - name: Install backend dependencies
+        script: npm ci
+      - name: Install mobile dependencies
+        script: |
+          cd mobile
+          npm ci
+      - name: Run release preflight
+        script: npm run preflight:release
+      - name: Generate native iOS project
+        script: |
+          cd mobile
+          npx expo prebuild --platform ios --clean --non-interactive
+      - name: Install CocoaPods dependencies
+        script: |
+          cd mobile/ios
+          pod install
+      - name: Apply iOS signing profiles
+        script: |
+          cd mobile
+          xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$CM_BUILD_DIR/mobile/ios/$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false

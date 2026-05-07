@@ -10,6 +10,7 @@ checkJson("mobile/package.json");
 checkJson("mobile/eas.json");
 checkJson("app.json");
 checkFile("Procfile");
+checkFile("codemagic.yaml");
 checkFile("mobile/assets/icon.png");
 checkFile("mobile/assets/adaptive-icon.png");
 checkFile("mobile/assets/splash-icon.png");
