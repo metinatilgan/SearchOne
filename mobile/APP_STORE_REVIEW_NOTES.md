@@ -19,12 +19,12 @@ SearchOne is for public web/source discovery. Person searches redact private pho
 
 ## Ads
 
-The current binary does not include an advertising SDK. If an ad SDK is added before submission, update:
+The app includes Google AdMob banner support through `react-native-google-mobile-ads`. Development builds use Google sample ad IDs. TestFlight/App Store builds must be created with real AdMob iOS values:
 
-- App Store Connect App Privacy answers.
-- The iOS privacy manifest if the SDK collects additional data.
-- ATT consent flow if the ad SDK tracks users across apps or websites.
-- Review notes with the in-app path for reporting inappropriate ads.
+- `EXPO_PUBLIC_ADMOB_IOS_APP_ID`
+- `EXPO_PUBLIC_ADMOB_IOS_BANNER_AD_UNIT_ID`
+
+The app requests non-personalized ads by default and initializes Google's consent flow before requesting ads. The in-app banner has a "Bildir" action that opens the support/report page for inappropriate ads. If personalized ads are enabled later, App Store Connect privacy answers, ATT consent behavior, and the iOS privacy manifest must be reviewed again.
 
 ## Metadata Suggestions
 

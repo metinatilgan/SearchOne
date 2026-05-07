@@ -12,12 +12,15 @@
     "submit:ios": "npx eas submit --platform ios"
   },
   "dependencies": {
+    "@expo/config-plugins": "^55.0.8",
     "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~55.0.23",
     "expo-constants": "~55.0.16",
     "expo-status-bar": "~55.0.6",
+    "expo-tracking-transparency": "~55.0.13",
     "react": "19.2.0",
-    "react-native": "0.83.6"
+    "react-native": "0.83.6",
+    "react-native-google-mobile-ads": "^16.3.3"
   }
 }

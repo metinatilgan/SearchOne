@@ -20,7 +20,8 @@
       "bundleIdentifier": "com.metinatilgan.searchone",
       "buildNumber": "1",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserTrackingUsageDescription": "SearchOne, izin verirseniz size daha alakalı reklamlar göstermek ve reklam performansını ölçmek için cihaz reklam tanımlayıcısını kullanabilir."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -64,7 +65,7 @@
       }
     },
     "android": {
-      "package": "com.searchone.app",
+      "package": "com.metinatilgan.searchone",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0e7c66"
@@ -79,7 +80,15 @@
       "subscriptionTermsUrl": "https://metinatilgan.github.io/SearchOne/subscription-terms.html",
       "supportUrl": "https://metinatilgan.github.io/SearchOne/support.html",
       "reportIssueUrl": "https://metinatilgan.github.io/SearchOne/support.html#report",
-      "apiTimeoutMs": 12000
+      "apiTimeoutMs": 12000,
+      "adProvider": "admob",
+      "adsEnabled": true,
+      "adsPersonalized": false,
+      "adsRequestNonPersonalizedOnly": true,
+      "admobIosAppId": "ca-app-pub-3940256099942544~1458002511",
+      "admobAndroidAppId": "ca-app-pub-3940256099942544~3347511713",
+      "admobIosBannerAdUnitId": "ca-app-pub-3940256099942544/2435281174",
+      "admobAndroidBannerAdUnitId": "ca-app-pub-3940256099942544/9214589741"
     }
   }
 }

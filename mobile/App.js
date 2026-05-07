@@ -27,13 +27,23 @@ import {
   upsertRecentSearch
 } from "./src/recentSearches";
 
-const PRIVACY_POLICY_URL = Constants.expoConfig?.extra?.privacyPolicyUrl || "https://example.com/privacy";
-const PRIVACY_CHOICES_URL = Constants.expoConfig?.extra?.privacyChoicesUrl || PRIVACY_POLICY_URL;
-const TERMS_URL = Constants.expoConfig?.extra?.termsUrl || "https://example.com/terms";
-const EULA_URL = Constants.expoConfig?.extra?.eulaUrl || "https://example.com/eula";
-const SUBSCRIPTION_TERMS_URL = Constants.expoConfig?.extra?.subscriptionTermsUrl || "https://example.com/subscription-terms";
-const SUPPORT_URL = Constants.expoConfig?.extra?.supportUrl || "https://example.com/support";
-const REPORT_ISSUE_URL = Constants.expoConfig?.extra?.reportIssueUrl || SUPPORT_URL;
+const APP_EXTRA = Constants.expoConfig?.extra || {};
+const PRIVACY_POLICY_URL = APP_EXTRA.privacyPolicyUrl || "https://example.com/privacy";
+const PRIVACY_CHOICES_URL = APP_EXTRA.privacyChoicesUrl || PRIVACY_POLICY_URL;
+const TERMS_URL = APP_EXTRA.termsUrl || "https://example.com/terms";
+const EULA_URL = APP_EXTRA.eulaUrl || "https://example.com/eula";
+const SUBSCRIPTION_TERMS_URL = APP_EXTRA.subscriptionTermsUrl || "https://example.com/subscription-terms";
+const SUPPORT_URL = APP_EXTRA.supportUrl || "https://example.com/support";
+const REPORT_ISSUE_URL = APP_EXTRA.reportIssueUrl || SUPPORT_URL;
+const ADS_ENABLED = APP_EXTRA.adsEnabled === true && APP_EXTRA.adProvider === "admob";
+const ADS_PERSONALIZED = APP_EXTRA.adsPersonalized === true;
+const ADS_REQUEST_NON_PERSONALIZED_ONLY = APP_EXTRA.adsRequestNonPersonalizedOnly !== false;
+const ADMOB_BANNER_AD_UNIT_ID = Platform.select({
+  ios: APP_EXTRA.admobIosBannerAdUnitId,
+  android: APP_EXTRA.admobAndroidBannerAdUnitId,
+  default: APP_EXTRA.admobIosBannerAdUnitId || APP_EXTRA.admobAndroidBannerAdUnitId
+});
+const IS_EXPO_GO = Constants.appOwnership === "expo" || Constants.executionEnvironment === "storeClient";
 
 const LEGAL_LINKS = [
   { label: "Gizlilik", icon: "document-text-outline", url: PRIVACY_POLICY_URL },
@@ -57,6 +67,12 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [providerStatus, setProviderStatus] = useState("API kontrol ediliyor");
   const [recentSearches, setRecentSearches] = useState([]);
+  const [adState, setAdState] = useState({
+    ready: false,
+    module: null,
+    privacyOptionsRequired: false,
+    unavailableReason: null
+  });
 
   useEffect(() => {
     getHealth()
@@ -66,6 +82,7 @@ export default function App() {
       .catch(() => setProviderStatus("API bağlantısı yok"));
 
     loadRecentSearches().then(setRecentSearches);
+    initializeAds(setAdState);
   }, []);
 
   const privacyCopy = useMemo(() => {
@@ -203,6 +220,8 @@ export default function App() {
             </Pressable>
           </View>
 
+          <AdBanner adState={adState} />
+
           {recentSearches.length > 0 && (
             <View style={styles.recentBlock}>
               <View style={styles.recentHeader}>
@@ -257,6 +276,45 @@ function EmptyState() {
       <Text style={styles.emptyText}>
         Sonuçlar sosyal profil adayları, resmi kaynaklar, işletme iletişim kayıtları ve güven skoru olarak ayrıştırılır.
       </Text>
+    </View>
+  );
+}
+
+function AdBanner({ adState }) {
+  if (!ADS_ENABLED || !adState.ready || !adState.module?.BannerAd) {
+    return null;
+  }
+
+  const { BannerAd, BannerAdSize, TestIds } = adState.module;
+  const unitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : ADMOB_BANNER_AD_UNIT_ID;
+  const bannerSize = BannerAdSize.LARGE_ANCHORED_ADAPTIVE_BANNER || BannerAdSize.ANCHORED_ADAPTIVE_BANNER;
+
+  if (!unitId) {
+    return null;
+  }
+
+  return (
+    <View style={styles.adSlot}>
+      <View style={styles.adHeader}>
+        <Text style={styles.adLabel}>Reklam</Text>
+        <View style={styles.adActions}>
+          {adState.privacyOptionsRequired && (
+            <Pressable onPress={() => openAdPrivacyOptions(adState)} hitSlop={8}>
+              <Text style={styles.adActionText}>Tercihler</Text>
+            </Pressable>
+          )}
+          <Pressable onPress={reportAd} hitSlop={8}>
+            <Text style={styles.adActionText}>Bildir</Text>
+          </Pressable>
+        </View>
+      </View>
+      <BannerAd
+        unitId={unitId}
+        size={bannerSize}
+        requestOptions={{
+          requestNonPersonalizedAdsOnly: ADS_REQUEST_NON_PERSONALIZED_ONLY
+        }}
+      />
     </View>
   );
 }
@@ -451,6 +509,141 @@ async function reportResult(result) {
   await openUrl(reportUrl);
 }
 
+async function reportAd() {
+  await openUrl(REPORT_ISSUE_URL);
+}
+
+async function openAdPrivacyOptions(adState) {
+  const AdsConsent = adState.module?.AdsConsent;
+  if (!AdsConsent?.showPrivacyOptionsForm) {
+    await openUrl(PRIVACY_CHOICES_URL);
+    return;
+  }
+
+  try {
+    await AdsConsent.showPrivacyOptionsForm();
+  } catch {
+    await openUrl(PRIVACY_CHOICES_URL);
+  }
+}
+
+async function initializeAds(setAdState) {
+  if (!ADS_ENABLED) {
+    return;
+  }
+
+  if (IS_EXPO_GO) {
+    setAdState((current) => ({
+      ...current,
+      unavailableReason: "expo-go"
+    }));
+    return;
+  }
+
+  const ads = loadGoogleMobileAdsModule();
+  if (!ads) {
+    setAdState((current) => ({
+      ...current,
+      unavailableReason: "module-unavailable"
+    }));
+    return;
+  }
+
+  try {
+    let consentInfo = null;
+    if (ads.AdsConsent?.gatherConsent) {
+      try {
+        consentInfo = await ads.AdsConsent.gatherConsent({
+          tagForUnderAgeOfConsent: false
+        });
+      } catch (error) {
+        if (__DEV__) {
+          console.warn("Ad consent form could not be completed.", error);
+        }
+      }
+    }
+
+    if (!consentInfo && ads.AdsConsent?.getConsentInfo) {
+      try {
+        consentInfo = await ads.AdsConsent.getConsentInfo();
+      } catch (error) {
+        if (__DEV__) {
+          console.warn("Ad consent info could not be read.", error);
+        }
+      }
+    }
+
+    const privacyOptionsRequired =
+      consentInfo?.privacyOptionsRequirementStatus === "REQUIRED" ||
+      consentInfo?.privacyOptionsRequirementStatus === ads.AdsConsentPrivacyOptionsRequirementStatus?.REQUIRED;
+
+    if (consentInfo?.canRequestAds === false) {
+      setAdState({
+        ready: false,
+        module: ads,
+        privacyOptionsRequired,
+        unavailableReason: "consent-required"
+      });
+      return;
+    }
+
+    await requestTrackingPermissionIfNeeded();
+
+    const mobileAdsFactory = ads.default || ads.MobileAds;
+    const mobileAdsInstance = typeof mobileAdsFactory === "function" ? mobileAdsFactory() : mobileAdsFactory;
+    if (mobileAdsInstance?.initialize) {
+      await mobileAdsInstance.initialize();
+    }
+
+    setAdState({
+      ready: true,
+      module: ads,
+      privacyOptionsRequired,
+      unavailableReason: null
+    });
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("Ads could not be initialized.", error);
+    }
+
+    setAdState({
+      ready: false,
+      module: ads,
+      privacyOptionsRequired: false,
+      unavailableReason: "initialization-failed"
+    });
+  }
+}
+
+function loadGoogleMobileAdsModule() {
+  try {
+    return require("react-native-google-mobile-ads");
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("react-native-google-mobile-ads is not available in this runtime.", error);
+    }
+    return null;
+  }
+}
+
+async function requestTrackingPermissionIfNeeded() {
+  if (!ADS_PERSONALIZED || Platform.OS !== "ios") {
+    return;
+  }
+
+  try {
+    const tracking = require("expo-tracking-transparency");
+    const currentPermission = await tracking.getTrackingPermissionsAsync();
+    if (!currentPermission?.granted && currentPermission?.canAskAgain) {
+      await tracking.requestTrackingPermissionsAsync();
+    }
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("Tracking permission could not be requested.", error);
+    }
+  }
+}
+
 async function openUrl(url) {
   if (!url) {
     return;
@@ -582,6 +775,40 @@ const styles = StyleSheet.create({
   searchButtonText: {
     color: "#fffdf7",
     fontSize: 16,
+    fontWeight: "800"
+  },
+  adSlot: {
+    alignItems: "center",
+    marginTop: 12,
+    marginBottom: 2,
+    borderWidth: 1,
+    borderColor: "#d8d1c3",
+    backgroundColor: "#fffdf7",
+    paddingVertical: 8,
+    overflow: "hidden"
+  },
+  adHeader: {
+    width: "100%",
+    minHeight: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    marginBottom: 4
+  },
+  adLabel: {
+    color: "#69736d",
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  adActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12
+  },
+  adActionText: {
+    color: "#0a5b4c",
+    fontSize: 11,
     fontWeight: "800"
   },
   notice: {

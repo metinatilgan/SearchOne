@@ -17,6 +17,7 @@ checkFile("public/terms.html");
 checkFile("public/eula.html");
 checkFile("public/subscription-terms.html");
 checkFile("public/support.html");
+checkMobileDependencies();
 checkAppConfig();
 
 for (const result of results) {
@@ -56,12 +57,12 @@ function checkFile(relativePath) {
 }
 
 function checkAppConfig() {
-  const appConfig = readJson("mobile/app.json");
-  if (!appConfig?.expo) {
+  const baseAppConfig = readJson("mobile/app.json");
+  const expo = readExpoConfig() || baseAppConfig?.expo;
+  if (!expo) {
     return;
   }
 
-  const expo = appConfig.expo;
   const bundleIdentifier = expo.ios?.bundleIdentifier || "";
   const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || expo.extra?.apiBaseUrl || "";
   const privacyPolicyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL || expo.extra?.privacyPolicyUrl || "";
@@ -71,12 +72,15 @@ function checkAppConfig() {
   const subscriptionTermsUrl = process.env.EXPO_PUBLIC_SUBSCRIPTION_TERMS_URL || expo.extra?.subscriptionTermsUrl || "";
   const supportUrl = process.env.EXPO_PUBLIC_SUPPORT_URL || expo.extra?.supportUrl || "";
   const reportIssueUrl = process.env.EXPO_PUBLIC_REPORT_ISSUE_URL || expo.extra?.reportIssueUrl || "";
+  const adsEnabled = expo.extra?.adsEnabled === true;
+  const adsPersonalized = expo.extra?.adsPersonalized === true;
 
   requireValue("expo.name", expo.name);
   requireValue("expo.slug", expo.slug);
   requireValue("expo.icon", expo.icon);
   requireValue("expo.splash.image", expo.splash?.image);
   requireValue("expo.ios.bundleIdentifier", bundleIdentifier);
+  requireValue("expo.android.package", expo.android?.package);
   requireValue("expo.extra.apiBaseUrl", apiBaseUrl);
   requireValue("expo.extra.privacyPolicyUrl", privacyPolicyUrl);
   requireValue("expo.extra.privacyChoicesUrl", privacyChoicesUrl);
@@ -89,6 +93,10 @@ function checkAppConfig() {
 
   if (bundleIdentifier === "com.searchone.app") {
     warnOrFail("Bundle ID hala örnek değerde: com.searchone.app");
+  }
+
+  if (expo.android?.package === "com.searchone.app") {
+    warnOrFail("Android package hala örnek değerde: com.searchone.app");
   }
 
   for (const [label, value] of [
@@ -114,10 +122,78 @@ function checkAppConfig() {
     fail("apiBaseUrl GitHub Pages statik URL'si olamaz; /api/search destekleyen canlı backend URL gerekli.");
   }
 
-  checkPrivacyManifest(expo.ios?.privacyManifests);
+  checkPrivacyManifest(expo.ios?.privacyManifests, adsPersonalized);
+  checkAdsConfig(expo, adsEnabled);
 }
 
-function checkPrivacyManifest(manifest) {
+function checkMobileDependencies() {
+  const packageJson = readJson("mobile/package.json");
+  if (!packageJson) {
+    return;
+  }
+
+  const dependencies = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies
+  };
+
+  requireValue("mobile dependency react-native-google-mobile-ads", dependencies["react-native-google-mobile-ads"]);
+  requireValue("mobile dependency expo-tracking-transparency", dependencies["expo-tracking-transparency"]);
+  requireValue("mobile dependency @expo/config-plugins", dependencies["@expo/config-plugins"]);
+}
+
+function checkAdsConfig(expo, adsEnabled) {
+  if (!adsEnabled) {
+    warnOrFail("Reklamlar expo.extra.adsEnabled=false; App Store gelir modeli reklam olacaksa production build'de etkin olmalı.");
+    return;
+  }
+
+  const plugins = expo.plugins || [];
+  const extra = expo.extra || {};
+  const iosInfoPlist = expo.ios?.infoPlist || {};
+
+  if (hasPlugin(plugins, "react-native-google-mobile-ads")) {
+    pass("react-native-google-mobile-ads config plugin tanımlı.");
+  } else {
+    fail("react-native-google-mobile-ads config plugin eksik.");
+  }
+
+  if (hasPlugin(plugins, "expo-tracking-transparency")) {
+    pass("expo-tracking-transparency config plugin tanımlı.");
+  } else {
+    fail("expo-tracking-transparency config plugin eksik.");
+  }
+
+  requireValue("expo.extra.adProvider", extra.adProvider);
+  requireValue("expo.extra.admobIosAppId", extra.admobIosAppId);
+  requireValue("expo.extra.admobIosBannerAdUnitId", extra.admobIosBannerAdUnitId);
+  requireValue("expo.ios.infoPlist.NSUserTrackingUsageDescription", iosInfoPlist.NSUserTrackingUsageDescription);
+
+  if (extra.adsRequestNonPersonalizedOnly === true) {
+    pass("reklam isteği varsayılan olarak non-personalized.");
+  } else {
+    warnOrFail("reklam isteği non-personalized değil; App Store privacy labels ve ATT akışı buna göre doğrulanmalı.");
+  }
+
+  for (const [label, value, separator] of [
+    ["admobIosAppId", extra.admobIosAppId, "~"],
+    ["admobIosBannerAdUnitId", extra.admobIosBannerAdUnitId, "/"]
+  ]) {
+    if (!value) {
+      continue;
+    }
+
+    if (!String(value).startsWith("ca-app-pub-") || !String(value).includes(separator)) {
+      warnOrFail(`${label} geçerli AdMob formatında değil.`);
+    } else if (isGoogleSampleAdId(value)) {
+      warnOrFail(`${label} Google test ID kullanıyor; TestFlight/production için gerçek AdMob ID gerekli.`);
+    } else {
+      pass(`${label} production formatında.`);
+    }
+  }
+}
+
+function checkPrivacyManifest(manifest, expectsTracking) {
   if (!manifest) {
     return;
   }
@@ -146,10 +222,23 @@ function checkPrivacyManifest(manifest) {
     warnOrFail("privacy manifest SearchHistory/AppFunctionality beyanını içermiyor.");
   }
 
-  if (manifest.NSPrivacyTracking === false) {
+  if (expectsTracking && manifest.NSPrivacyTracking === true) {
+    pass("privacy manifest tracking=true içeriyor.");
+  } else if (!expectsTracking && manifest.NSPrivacyTracking === false) {
     pass("privacy manifest tracking=false içeriyor.");
   } else {
-    warnOrFail("privacy manifest NSPrivacyTracking=false içermiyor.");
+    warnOrFail(`privacy manifest NSPrivacyTracking=${expectsTracking ? "true" : "false"} içermiyor.`);
+  }
+}
+
+function readExpoConfig() {
+  try {
+    const configFactory = require(path.join(ROOT, "mobile/app.config.js"));
+    const config = typeof configFactory === "function" ? configFactory() : configFactory;
+    return config?.expo || config || null;
+  } catch (error) {
+    fail(`mobile/app.config.js çözümlenemedi: ${error.message}`);
+    return null;
   }
 }
 
@@ -167,6 +256,20 @@ function requireValue(label, value) {
     return;
   }
   fail(`${label} eksik.`);
+}
+
+function hasPlugin(plugins, name) {
+  return plugins.some((plugin) => {
+    if (typeof plugin === "string") {
+      return plugin === name;
+    }
+
+    return Array.isArray(plugin) && plugin[0] === name;
+  });
+}
+
+function isGoogleSampleAdId(value) {
+  return String(value || "").includes("3940256099942544");
 }
 
 function warnOrFail(message) {

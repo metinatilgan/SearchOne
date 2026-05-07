@@ -43,8 +43,16 @@ EXPO_PUBLIC_EULA_URL=https://metinatilgan.github.io/SearchOne/eula.html \
 EXPO_PUBLIC_SUBSCRIPTION_TERMS_URL=https://metinatilgan.github.io/SearchOne/subscription-terms.html \
 EXPO_PUBLIC_SUPPORT_URL=https://metinatilgan.github.io/SearchOne/support.html \
 EXPO_PUBLIC_REPORT_ISSUE_URL=https://metinatilgan.github.io/SearchOne/support.html#report \
+EXPO_PUBLIC_ADS_ENABLED=true \
+EXPO_PUBLIC_ADS_PERSONALIZED=false \
+EXPO_PUBLIC_ADMOB_IOS_APP_ID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy \
+EXPO_PUBLIC_ADMOB_IOS_BANNER_AD_UNIT_ID=ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyy \
 npm run build:ios
 ```
+
+## Reklam entegrasyonu
+
+Uygulama Google AdMob banner reklamları için hazırlanmıştır. Geliştirme build'lerinde Google test ID'leri kullanılır; TestFlight ve App Store build'lerinde gerçek iOS AdMob App ID ve banner ad unit ID ortam değişkenleriyle verilmelidir. Varsayılan reklam isteği `non-personalized` çalışır. Personalized reklam açılacaksa `EXPO_PUBLIC_ADS_PERSONALIZED=true` kullanmadan önce App Store Connect privacy labels, ATT akışı ve privacy manifest cevapları yeniden doğrulanmalıdır.
 
 ## App Store hazırlığı
 
@@ -52,9 +60,9 @@ npm run build:ios
 2. `expo.extra.apiBaseUrl` değerini canlı HTTPS API adresi yapın.
 3. `expo.extra.privacyPolicyUrl`, `termsUrl`, `eulaUrl`, `subscriptionTermsUrl`, `privacyChoicesUrl`, `supportUrl` ve `reportIssueUrl` değerlerini gerçek, herkese açık HTTPS sayfalarınızla değiştirin.
 4. iOS privacy manifest `app.json` içinde tanımlıdır. Arama geçmişi, UserDefaults ve React Native/Expo runtime tarafından kullanılan required-reason API kategorileri App Store Connect cevaplarıyla tutarlı tutulmalıdır.
-5. Uygulama ücretsiz ve reklam destekli yayınlanacaksa reklam SDK'sının topladığı verileri App Store Connect App Privacy yanıtlarına ekleyin.
-6. Reklam sağlayıcı kullanıcıyı uygulamalar ve web siteleri arasında takip ediyorsa App Tracking Transparency izin metnini ve uygulama içi izin akışını ekleyin.
-7. App Store Connect'te App Privacy sorularını, backend, reklam SDK'sı ve üçüncü taraf arama API'leri dahil gerçek veri akışına göre doldurun.
+5. AdMob SDK'sının topladığı verileri App Store Connect App Privacy yanıtlarına ekleyin. Uygulama içindeki "Bildir" reklam destek bağlantısı destek sayfasına gider.
+6. Reklam sağlayıcı kullanıcıyı uygulamalar ve web siteleri arasında takip edecek şekilde yapılandırılırsa App Tracking Transparency izin akışını ve `NSPrivacyTracking` beyanını buna göre güncelleyin.
+7. App Store Connect'te App Privacy sorularını, backend, AdMob ve üçüncü taraf arama API'leri dahil gerçek veri akışına göre doldurun.
 8. EAS projesini bağlayın:
 
 ```bash
