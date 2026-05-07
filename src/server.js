@@ -100,7 +100,8 @@ function serveStatic(request, response) {
     "/privacy-choices": "/privacy-choices.html",
     "/terms": "/terms.html",
     "/eula": "/eula.html",
-    "/subscription-terms": "/subscription-terms.html"
+    "/subscription-terms": "/subscription-terms.html",
+    "/support": "/support.html"
   };
   const safePath = staticAliases[pathname] || pathname;
   const filePath = path.normalize(path.join(PUBLIC_DIR, safePath));

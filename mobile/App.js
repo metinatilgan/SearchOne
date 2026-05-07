@@ -32,13 +32,16 @@ const PRIVACY_CHOICES_URL = Constants.expoConfig?.extra?.privacyChoicesUrl || PR
 const TERMS_URL = Constants.expoConfig?.extra?.termsUrl || "https://example.com/terms";
 const EULA_URL = Constants.expoConfig?.extra?.eulaUrl || "https://example.com/eula";
 const SUBSCRIPTION_TERMS_URL = Constants.expoConfig?.extra?.subscriptionTermsUrl || "https://example.com/subscription-terms";
+const SUPPORT_URL = Constants.expoConfig?.extra?.supportUrl || "https://example.com/support";
+const REPORT_ISSUE_URL = Constants.expoConfig?.extra?.reportIssueUrl || SUPPORT_URL;
 
 const LEGAL_LINKS = [
   { label: "Gizlilik", icon: "document-text-outline", url: PRIVACY_POLICY_URL },
   { label: "Kullanım Şartları", icon: "reader-outline", url: TERMS_URL },
   { label: "EULA", icon: "shield-outline", url: EULA_URL },
   { label: "Abonelik Şartları", icon: "card-outline", url: SUBSCRIPTION_TERMS_URL },
-  { label: "Gizlilik Tercihleri", icon: "options-outline", url: PRIVACY_CHOICES_URL }
+  { label: "Gizlilik Tercihleri", icon: "options-outline", url: PRIVACY_CHOICES_URL },
+  { label: "Destek", icon: "help-circle-outline", url: SUPPORT_URL }
 ];
 
 const TARGET_TYPES = [
@@ -272,6 +275,10 @@ function Results({ result }) {
           <Ionicons name="share-outline" size={17} color="#0a5b4c" />
           <Text style={styles.shareButtonText}>Sonucu paylaş</Text>
         </Pressable>
+        <Pressable style={styles.reportButton} onPress={() => reportResult(result)}>
+          <Ionicons name="flag-outline" size={17} color="#6d3d12" />
+          <Text style={styles.reportButtonText}>Hatalı sonucu bildir</Text>
+        </Pressable>
       </View>
 
       <Section title="Sosyal ve profesyonel profiller">
@@ -429,6 +436,19 @@ async function shareResult(result) {
   await Share.share({
     message: `${result.query}\n${result.summary}\n\nKaynaklar:\n${topSources}`
   });
+}
+
+async function reportResult(result) {
+  const params = new URLSearchParams({
+    q: result.query || "",
+    type: result.targetType || "",
+    provider: result.provider || ""
+  });
+  const [baseUrl, hash] = REPORT_ISSUE_URL.split("#");
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  const reportUrl = `${baseUrl}${separator}${params.toString()}${hash ? `#${hash}` : ""}`;
+
+  await openUrl(reportUrl);
 }
 
 async function openUrl(url) {
@@ -691,6 +711,22 @@ const styles = StyleSheet.create({
   },
   shareButtonText: {
     color: "#0a5b4c",
+    fontSize: 13,
+    fontWeight: "800"
+  },
+  reportButton: {
+    alignSelf: "flex-start",
+    minHeight: 38,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    borderWidth: 1,
+    borderColor: "#e1c49e",
+    backgroundColor: "#fff7e9",
+    paddingHorizontal: 11
+  },
+  reportButtonText: {
+    color: "#6d3d12",
     fontSize: 13,
     fontWeight: "800"
   },

@@ -41,6 +41,8 @@ EXPO_PUBLIC_PRIVACY_CHOICES_URL=https://metinatilgan.github.io/SearchOne/privacy
 EXPO_PUBLIC_TERMS_URL=https://metinatilgan.github.io/SearchOne/terms.html \
 EXPO_PUBLIC_EULA_URL=https://metinatilgan.github.io/SearchOne/eula.html \
 EXPO_PUBLIC_SUBSCRIPTION_TERMS_URL=https://metinatilgan.github.io/SearchOne/subscription-terms.html \
+EXPO_PUBLIC_SUPPORT_URL=https://metinatilgan.github.io/SearchOne/support.html \
+EXPO_PUBLIC_REPORT_ISSUE_URL=https://metinatilgan.github.io/SearchOne/support.html#report \
 npm run build:ios
 ```
 
@@ -48,24 +50,25 @@ npm run build:ios
 
 1. `mobile/app.json` içindeki `ios.bundleIdentifier` değerini Apple Developer hesabınızdaki benzersiz ID ile değiştirin.
 2. `expo.extra.apiBaseUrl` değerini canlı HTTPS API adresi yapın.
-3. `expo.extra.privacyPolicyUrl`, `termsUrl`, `eulaUrl`, `subscriptionTermsUrl` ve `privacyChoicesUrl` değerlerini gerçek, herkese açık HTTPS sayfalarınızla değiştirin.
-4. Uygulama ücretsiz ve reklam destekli yayınlanacaksa reklam SDK'sının topladığı verileri App Store Connect App Privacy yanıtlarına ekleyin.
-5. Reklam sağlayıcı kullanıcıyı uygulamalar ve web siteleri arasında takip ediyorsa App Tracking Transparency izin metnini ve uygulama içi izin akışını ekleyin.
-6. App Store Connect'te App Privacy sorularını, backend, reklam SDK'sı ve üçüncü taraf arama API'leri dahil gerçek veri akışına göre doldurun.
-7. EAS projesini bağlayın:
+3. `expo.extra.privacyPolicyUrl`, `termsUrl`, `eulaUrl`, `subscriptionTermsUrl`, `privacyChoicesUrl`, `supportUrl` ve `reportIssueUrl` değerlerini gerçek, herkese açık HTTPS sayfalarınızla değiştirin.
+4. iOS privacy manifest `app.json` içinde tanımlıdır. Arama geçmişi, UserDefaults ve React Native/Expo runtime tarafından kullanılan required-reason API kategorileri App Store Connect cevaplarıyla tutarlı tutulmalıdır.
+5. Uygulama ücretsiz ve reklam destekli yayınlanacaksa reklam SDK'sının topladığı verileri App Store Connect App Privacy yanıtlarına ekleyin.
+6. Reklam sağlayıcı kullanıcıyı uygulamalar ve web siteleri arasında takip ediyorsa App Tracking Transparency izin metnini ve uygulama içi izin akışını ekleyin.
+7. App Store Connect'te App Privacy sorularını, backend, reklam SDK'sı ve üçüncü taraf arama API'leri dahil gerçek veri akışına göre doldurun.
+8. EAS projesini bağlayın:
 
 ```bash
 cd mobile
 npx eas init
 ```
 
-8. iOS production build alın:
+9. iOS production build alın:
 
 ```bash
 npm run build:ios
 ```
 
-9. App Store Connect'e gönderin:
+10. App Store Connect'e gönderin:
 
 ```bash
 npm run submit:ios
@@ -76,6 +79,8 @@ Yayın öncesi kök dizinde sıkı kontrol çalıştırın:
 ```bash
 npm run preflight:release
 ```
+
+`preflight:release`, `EXPO_PUBLIC_API_BASE_URL` gerçek bir HTTPS backend olmadığı sürece başarısız olur. GitHub Pages yalnızca yasal/static sayfalar için uygundur; `/api/search` endpoint'i için Node backend'i Render, Fly.io, Railway, Vercel Functions veya benzeri bir servis üzerinde yayınlanmalıdır.
 
 ## Ürün sınırları
 
