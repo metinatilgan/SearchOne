@@ -98,7 +98,7 @@ EXPO_PUBLIC_API_BASE_URL=https://<heroku-app-adiniz>.herokuapp.com
 
 ## Codemagic TestFlight build
 
-Repo kökünde `codemagic.yaml` bulunur. Codemagic'te uygulamayı GitHub reposuna bağladıktan sonra `searchone_production` environment variable group'unu oluşturun ve şu değerleri ekleyin:
+Repo kökünde `codemagic.yaml` bulunur. Codemagic API ile build başlatırken veya Codemagic UI'da manuel build değişkenleri verirken şu değerler kullanılmalıdır:
 
 ```bash
 EXPO_PUBLIC_API_BASE_URL=https://searchone-43f3bf34623e.herokuapp.com
