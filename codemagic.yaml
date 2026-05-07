@@ -5,6 +5,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       groups:
+        - searchone_public_env
         - app_store_credentials_team
       vars:
         BUNDLE_ID: "com.metinatilgan.searchone"
