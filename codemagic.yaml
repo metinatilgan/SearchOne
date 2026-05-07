@@ -33,10 +33,19 @@ workflows:
           pod install
       - name: Validate signing environment
         script: |
-          test -n "${APP_STORE_CONNECT_PRIVATE_KEY:-}"
-          test -n "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}"
-          test -n "${APP_STORE_CONNECT_ISSUER_ID:-}"
-          test -n "${CERTIFICATE_PRIVATE_KEY:-}"
+          missing=0
+          for name in \
+            APP_STORE_CONNECT_PRIVATE_KEY \
+            APP_STORE_CONNECT_KEY_IDENTIFIER \
+            APP_STORE_CONNECT_ISSUER_ID \
+            CERTIFICATE_PRIVATE_KEY
+          do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing required signing variable: $name" >&2
+              missing=1
+            fi
+          done
+          exit "$missing"
       - name: Initialize keychain
         script: keychain initialize
       - name: Fetch signing files from Apple Developer Portal
